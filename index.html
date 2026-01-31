@@ -27,14 +27,31 @@
 
 body{
   margin:0;
+  display:flex;
+  justify-content:center;
   padding:18px;
   background:var(--soft);
   color:var(--text);
   font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
 }
 
-.wrap{max-width:760px;margin:0 auto;}
+.wrap{max-width:1100px;margin:0 auto;}
 .tools{display:flex;gap:8px;margin-bottom:10px;}
+
+.qrWrap{
+  display:flex;
+  gap:14px;
+  align-items:center;
+  margin-top:14px;
+}
+.qr{
+  width:96px;
+  height:96px;
+  border-radius:14px;
+  border:1px solid var(--border);
+  background:var(--soft);
+}
+
 
 .card{
   background:var(--bg);
@@ -124,6 +141,16 @@ h1{margin:0;font-size:20px;}
         <button class="btn primary" id="btnIban"></button>
       </div>
 
+      <div class="qrWrap" id="qrWrap" style="display:none;">
+        <img class="qr" id="qrImg" alt="Payconiq QR">
+          <div class="small">
+          <strong>Payconiq (instant)</strong><br>
+            Scan the QR (montant libre)<br>
+            <code>PROJET – Your Name</code>
+        </div>
+      </div>
+
+
       <div class="small">
         <span id="ibanMsgLbl"></span><br>
         <code>PROJET – Your Name</code>
@@ -193,17 +220,33 @@ async function loadData(){
   const pct=Math.min(100,Math.round(d.raised/d.goal*100));
   document.getElementById("fill").style.width=pct+"%";
 
-  set("raisedTxt",fmt(d.raised));
+  const pct = Math.min(100, Math.round(d.raised / d.goal * 100));
+  set("raisedTxt", `${fmt(d.raised)} (${pct}%)`);
   set("goalTxt",fmt(d.goal));
   set("minTxt",fmt(d.minimum));
   set("remainingTxt",fmt(Math.max(0,d.goal-d.raised)));
   set("endTxt",d.endDate);
   set("updatedTxt",d.updated);
-  set("minStatus",d.raised>=d.minimum?"✅ OK":"❌");
+  if (d.raised >= d.minimum) {
+  set("minStatus","✅ Atteint");
+  } else {
+  set("minStatus", fmt(d.minimum - d.raised));
+  }
 
+  //Date
   const days=Math.ceil((new Date(d.endDate)-Date.now())/86400000);
   set("daysLeft",days>0?`${days} jours`:"Terminé");
 
+  // QR Payconiq
+  if (d.payconiqQr) {
+    document.getElementById("qrImg").src = d.payconiqQr;
+    document.getElementById("qrWrap").style.display = "flex";
+  } else {
+    document.getElementById("qrWrap").style.display = "none";
+  }
+
+  
+  //Iban
   const btn=document.getElementById("btnIban");
   btn.onclick=async()=>{
     await navigator.clipboard.writeText(d.iban);
@@ -221,12 +264,14 @@ async function loadData(){
   }
 }
 
+//Dark mode  
 document.getElementById("toggleTheme").onclick=()=>{
   theme=theme==="light"?"dark":"light";
   document.documentElement.dataset.theme=theme;
   localStorage.theme=theme;
 };
 
+//Langue  
 document.getElementById("toggleLang").onclick=()=>{
   lang=lang==="fr"?"en":"fr";
   localStorage.lang=lang;
