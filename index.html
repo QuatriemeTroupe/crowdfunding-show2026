@@ -25,17 +25,25 @@
   --fill:#38bdf8;
 }
 
+html, body {
+  width: 100%;
+  min-height: 100%;
+}
+
 body{
   margin:0;
   display:flex;
   justify-content:center;
+  align-items:flex-start;
   padding:18px;
   background:var(--soft);
-  color:var(--text);
-  font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
 }
 
-.wrap{max-width:1100px;margin:0 auto;}
+.wrap{
+  width:100%;
+  max-width:1100px;
+}
+
 .tools{display:flex;gap:8px;margin-bottom:10px;}
 
 .qrWrap{
@@ -220,7 +228,6 @@ async function loadData(){
   const pct=Math.min(100,Math.round(d.raised/d.goal*100));
   document.getElementById("fill").style.width=pct+"%";
 
-  const pct = Math.min(100, Math.round(d.raised / d.goal * 100));
   set("raisedTxt", `${fmt(d.raised)} (${pct}%)`);
   set("goalTxt",fmt(d.goal));
   set("minTxt",fmt(d.minimum));
