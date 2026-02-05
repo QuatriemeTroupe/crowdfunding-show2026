@@ -405,6 +405,10 @@ async function loadData(){
     set("minStatus", d.current >= d.minimum ? "✅ Atteint" : fmt(d.minimum - d.current));
 
     /* ---- JOURS RESTANTS ---- */
+    if (!d.endDate) {
+      document.getElementById("daysLeft").textContent = "—";
+    } else {
+    
     const days = Math.max(
       0,
       Math.ceil((new Date(d.endDate) - Date.now()) / 86400000)
@@ -420,6 +424,7 @@ async function loadData(){
       const unit = days === 1 ? LANGS[lang].day : LANGS[lang].days;
       daysEl.textContent = `⏳ ${days} ${unit}`;
       if (days <= 3) daysEl.classList.add("warning");
+    }
     }
 
     /* ---- PAYCONIQ ---- */
