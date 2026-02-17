@@ -81,8 +81,9 @@ h3{margin-top:20px;}
   background:#fff;
   font-weight:700;
   cursor:pointer;
+  width:100%;
 }
-.btn.primary{background:var(--fill);color:#fff;}
+.btn.primary{background:var(--fill);color:#fff;margin-top:15px;}
 .btn.success{background:var(--success);color:#fff;}
 
 .story{
@@ -100,14 +101,54 @@ h3{margin-top:20px;}
   color: white;
   font-size: 26px;
   font-weight: 900;
-  /* On place le dégradé en premier (au-dessus) et on ajuste la position */
   background: 
     linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 60%),
     url("img/POSTER.jpg") no-repeat;
-  background-position: center 1px; /* On descend l'image de 2px */
+  background-position: center 1px;
   background-size: cover;
   background-color: #333;
 }
+
+/* ZONE DONATION & TOP 5 */
+.donation-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+}
+.qr-col { flex: 0 0 auto; width: 120px; }
+.rewards-col { flex: 2; min-width: 200px; }
+.top-col { flex: 1.5; min-width: 180px; }
+
+.section-title {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--muted);
+  margin-bottom: 8px;
+  font-weight: bold;
+}
+
+.reward-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  padding: 4px 0;
+  border-bottom: 1px dashed var(--border);
+}
+.reward-val { font-weight: 700; color: var(--fill); margin-right: 8px; }
+
+.top-list { list-style: none; padding: 0; margin: 0; }
+.top-item {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  padding: 4px 0;
+}
+.top-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.top-amt { font-weight: bold; }
 
 /* CAROUSEL */
 .carousel{
@@ -144,22 +185,15 @@ h3{margin-top:20px;}
 }
 .carousel-dots .active{background:white;}
 
-.qrWrap{
-  display:flex;
-  gap:14px;
-  align-items:center;
-  margin-top:14px;
-}
 .qr{
-  width:96px;
-  height:96px;
-  border-radius:14px;
+  width:100%;
+  aspect-ratio: 1/1;
+  border-radius:12px;
   border:1px solid var(--border);
   background:var(--soft);
 }
 .small{font-size:12px;color:var(--muted);}
 
-/* VIDEO CONTAINER */
 .video-wrap {
   margin-top: 20px;
   border-radius: 14px;
@@ -183,8 +217,8 @@ h3{margin-top:20px;}
 <div class="wrap">
 
 <div class="tools">
-  <button class="btn" id="toggleTheme">🌙</button>
-  <button class="btn" id="toggleLang">FR / EN</button>
+  <button class="btn" style="width:auto" id="toggleTheme">🌙</button>
+  <button class="btn" style="width:auto" id="toggleLang">FR / EN</button>
 </div>
 
 <div class="card hero">
@@ -225,16 +259,32 @@ h3{margin-top:20px;}
 
     <button class="btn primary" id="btnIban"></button>
 
-    <div class="qrWrap" id="qrWrap" style="display:none;">
-      <img class="qr" id="qrImg">
-      <div class="small">
-        <strong>Payconiq</strong><br>
-        Scan du QR code (montant libre)<br>
-        <code>Show Vélo 2026</code>
+    <div class="donation-grid">
+      <div class="qr-col" id="qrWrap" style="display:none;">
+        <div class="section-title">Scan & Pay</div>
+        <img class="qr" id="qrImg">
+        <div class="small" style="margin-top:5px; text-align:center;">Payconiq</div>
+      </div>
+
+      <div class="rewards-col">
+        <div class="section-title" id="rewardsTitle"></div>
+        <div id="rewardsList">
+            <div class="reward-row"><span class="reward-val">10€</span> <span>Badge exclusif</span></div>
+            <div class="reward-row"><span class="reward-val">25€</span> <span>Affiche dédicacée</span></div>
+            <div class="reward-row"><span class="reward-val">50€</span> <span>1 place VIP</span></div>
+            <div class="reward-row"><span class="reward-val">100€+</span> <span>Pack Gold (2 places + boisson)</span></div>
+        </div>
+      </div>
+
+      <div class="top-col">
+        <div class="section-title" id="topDonorsTitle"></div>
+        <ul class="top-list" id="topDonorsList">
+          <li class="small">Chargement...</li>
+        </ul>
       </div>
     </div>
 
-    <div class="small">
+    <div class="small" style="margin-top:15px; border-top: 1px solid var(--border); padding-top:10px;">
       <span id="ibanMsgLbl"></span><br>
       <code>Show Vélo 2026</code>
     </div>
@@ -299,20 +349,22 @@ fr:{
  day:"jour",
  days:"jours",
  lastDay:"🔥 Dernier jour",
+ rewards:"Barèmes & Cadeaux",
+ topDonors:"Top 5 Donateurs",
  story:{
   title:"Le projet",
   presentationTitle : "Présentation du projet",
-  presentation: `Nous faisons appel à votre générosité afin de soutenir la réalisation du Show-Vélo, un spectacle d’acrobaties à vélo préparé tout au long de l’année par près de cinquante scouts âgés de 12 à 18 ans. Ce spectacle rassemble synchronisation, technique et créativité.`,
+  presentation: `Nous faisons appel à votre générosité...`,
   historyTitle: "Histoire du show-vélo",
-  history: `Véritable moment phare de la vie de la Troupe, le Show-Vélo est un événement unique mêlant agilité, force et créativité. Face à un public de plus de 3 000 spectateurs, à la lueur des flambeaux, les scouts maîtrisent leur vélo pour réaliser des figures toujours plus impressionnantes.`,
-  figuresTitle:"Exercices d’ensemble et acrobaties",
-  figures:`Le spectacle se compose de deux grands types de performances. Les exercices d’ensemble reposent sur une synchronisation parfaite : alignement millimétré, timing rigoureux et concentration absolue permettent aux scouts de former des figures spectaculaires. Les acrobaties mettent l’accent sur le risque et la difficulté technique.`,
-  orgaTitle:"Une organisation technique impressionnante",
-  orga:`Le Show-Vélo ne pourrait exister sans une organisation technique pointilleuse. Accompagnement musical, effets pyrotechniques, et 25 000 watts de jeux de lumière contribuent à faire de cet événement un spectacle hors du commun. Cette année, nous souhaitons aller plus loin en faisant appel à une équipe professionnelle pour assurer le tournage et la retransmission du spectacle en direct.`,
-  fundingTitle:"À quoi servira le financement ?",
-  funding:`Le poste de dépense principal concerne la sonorisation et les jeux de lumière. Un événement de cette ampleur nécessite un important apport logistique et technique. À cela s’ajoutent d’autres frais indispensables tels que l’impression des affiches, l’entretien et la réparation des vélos.`,
-  sponsorTitle:"Sponsoring pour les entreprises",
-  sponsor:`Pour les entreprises souhaitant soutenir le projet tout en gagnant en visibilité, un système de sponsoring a été mis en place. En contribuant, votre entreprise pourra afficher son logo sur des affiches et l’insérer dans les carnets distribués lors du spectacle.`
+  history: `Véritable moment phare...`,
+  figuresTitle:"Exercices d’ensemble",
+  figures:`Le spectacle se compose...`,
+  orgaTitle:"Organisation technique",
+  orga:`Le Show-Vélo ne pourrait...`,
+  fundingTitle:"Financement",
+  funding:`Le poste de dépense principal...`,
+  sponsorTitle:"Sponsoring",
+  sponsor:`Pour les entreprises souhaitant...`
  }
 },
 en:{
@@ -328,20 +380,22 @@ en:{
   day:"day",
   days:"days",
   lastDay:"🔥 Last day",
+  rewards:"Rewards & Gifts",
+  topDonors:"Top 5 Donors",
   story:{
     title:"The project",
     presentationTitle : "Project presentation",
-    presentation: `We are calling on your generosity to support the realization of the Show-Vélo, a bicycle acrobatics show prepared throughout the year by nearly fifty scouts aged 12 to 18. This show combines synchronization, technique and creativity.`,
+    presentation: `We are calling on your generosity...`,
     historyTitle: "History of the Show-Vélo",
-    history: `Every three years, and since 1942, on the occasion of the Saint-Michel College celebration, the Fourth Ardents Troop of Saint-Michel transforms the school courtyard into a true performance space. A true highlight of the Troop’s life, the Show-Vélo combines agility, strength and creativity.`,
-    figuresTitle:"Group exercises and acrobatics",
-    figures:`The show consists of two main types of performances. Group exercises rely on perfect synchronization: millimeter-precise alignment, rigorous timing and absolute concentration allow the scouts to form spectacular geometric figures. Acrobatics emphasize risk and technical difficulty.`,
-    orgaTitle:"An impressive technical organization",
-    orga:`The Show-Vélo could not exist without meticulous technical organization. Musical accompaniment, pyrotechnic effects, and 25,000 watts of lighting effects help make this event extraordinary. This year, we want to go further by using a professional team to ensure the filming and live broadcast of the show.`,
-    fundingTitle:"What will the funding be used for?",
-    funding:`The main expense concerns sound systems and lighting. An event of this scale requires significant logistical and material resources. Other essential costs include printing posters and booklets, maintenance and repair of bicycles.`,
-    sponsorTitle:"Sponsorship for companies",
-    sponsor:`For companies wishing to support the project while gaining visibility, a sponsorship system has been put in place. By contributing, your company can display its logo on posters and include an ad in the event booklets.`
+    history: `Every three years...`,
+    figuresTitle:"Group exercises",
+    figures:`The show consists...`,
+    orgaTitle:"Technical organization",
+    orga:`The Show-Vélo could not...`,
+    fundingTitle:"Funding",
+    funding:`The main expense concerns...`,
+    sponsorTitle:"Sponsorship",
+    sponsor:`For companies wishing...`
     }
   }
 };
@@ -364,6 +418,9 @@ function applyLang(){
  set("remainingLbl",L.remaining);
  set("btnIban",L.iban);
  set("ibanMsgLbl",L.ibanMsg);
+ set("rewardsTitle", L.rewards);
+ set("topDonorsTitle", L.topDonors);
+ 
  const S=L.story;
  set("storyTitle",S.title);
  set("presentationTitle",S.presentationTitle);
@@ -383,7 +440,6 @@ function applyLang(){
 async function loadData(){
   try{
     const r = await fetch(`${DATA_URL}?token=${TOKEN}`);
-    if(!r.ok) throw new Error("Fetch failed");
     const d = await r.json();
 
     const pct = Math.min(100, Math.round(d.current / d.goal * 100));
@@ -396,9 +452,8 @@ async function loadData(){
     set("updatedTxt", d.updated);
     set("minStatus", d.current >= d.minimum ? "✅ Atteint" : fmt(d.minimum - d.current));
 
-    if (!d.endDate) {
-      document.getElementById("daysLeft").textContent = "—";
-    } else {
+    // Gestion jours restants
+    if (d.endDate) {
       const days = Math.max(0, Math.ceil((new Date(d.endDate) - Date.now()) / 86400000));
       const daysEl = document.getElementById("daysLeft");
       daysEl.classList.remove("warning");
@@ -412,21 +467,30 @@ async function loadData(){
       }
     }
 
+    // QR Code
     if (d.payconiqQr) {
       document.getElementById("qrImg").src = d.payconiqQr;
-      document.getElementById("qrWrap").style.display = "flex";
+      document.getElementById("qrWrap").style.display = "block";
     }
 
-    /* ---- YOUTUBE VIDEO (Nettoyage renforcé) ---- */
-    if (d.youtubeUrl && d.youtubeUrl.trim() !== "") {
-      const url = d.youtubeUrl.trim();
-      let videoId = "";
-      if (url.includes('v=')) {
-        videoId = url.split('v=')[1].split('&')[0];
-      } else if (url.includes('youtu.be/')) {
-        videoId = url.split('youtu.be/')[1].split('?')[0];
-      }
-      
+    // Top Donateurs (Dynamique)
+    const topList = document.getElementById("topDonorsList");
+    topList.innerHTML = "";
+    if(d.topDonors && d.topDonors.length > 0) {
+        d.topDonors.forEach(donor => {
+            const li = document.createElement("li");
+            li.className = "top-item";
+            li.innerHTML = `<span class="top-name">${donor.name}</span> <span class="top-amt">${fmt(donor.amount)}</span>`;
+            topList.appendChild(li);
+        });
+    } else {
+        topList.innerHTML = "<li class='small'>Aucun don pour l'instant</li>";
+    }
+
+    // Youtube
+    if (d.youtubeUrl) {
+      const url = d.youtubeUrl;
+      let videoId = url.includes('v=') ? url.split('v=')[1].split('&')[0] : (url.includes('youtu.be/') ? url.split('youtu.be/')[1].split('?')[0] : "");
       if (videoId) {
         document.getElementById("ytPlayer").src = `https://www.youtube.com/embed/${videoId}`;
         document.getElementById("ytWrap").style.display = "block";
@@ -448,10 +512,11 @@ async function loadData(){
 
   } catch (err) {
     console.error(err);
-    document.getElementById("statusTxt").textContent = "⚠️ Données temporairement indisponibles";
+    document.getElementById("statusTxt").textContent = "⚠️ Erreur de chargement";
   }
 }
 
+// Carousel logic
 const track=document.getElementById("carouselTrack");
 const dots=document.getElementById("carouselDots");
 [...track.children].forEach((_,i)=>{
