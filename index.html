@@ -33,7 +33,6 @@
   color:#c2410c;
   border-color:#fdba74;
 }
-
 [data-theme="dark"] .pill.warning{
   background:#451a03;
   color:#fed7aa;
@@ -49,7 +48,6 @@ body{
 }
 
 .wrap{max-width:1100px;margin:auto;}
-/* Boutons alignés à gauche (suppression de flex-end) */
 .tools{display:flex;gap:8px;margin-bottom:12px;}
 
 .card{
@@ -166,21 +164,19 @@ h3{margin-top:20px;}
   overflow: hidden;
   border-radius: 16px;
   margin: 18px 0;
-  height: 450px; 
-  background: #eee; /* Une couleur grise légère en attendant le chargement */
+  height: 450px;
+  background: #eee;
 }
-
 .carousel-track {
   display: flex;
   height: 100%;
-  transition: transform .6s cubic-bezier(0.4, 0, 0.2, 1); /* Transition plus douce */
-  will-change: transform; /* Optimisation performance */
+  transition: transform .6s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform;
 }
-
 .carousel-slide {
   min-width: 100%;
-  flex-shrink: 0; /* Important : empêche l'image de rétrécir */
-  background-size: cover; 
+  flex-shrink: 0;
+  background-size: cover;
   background-position: 0% center;
   background-repeat: no-repeat;
 }
@@ -225,6 +221,52 @@ h3{margin-top:20px;}
   width: 100%;
   height: 100%;
 }
+
+/* ===== TOMBOLA ===== */
+.prize-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 12px;
+  margin-top: 14px;
+}
+.prize-card {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 14px;
+  text-align: center;
+  position: relative;
+  background: var(--bg);
+}
+.prize-rank  { font-size: 28px; margin-bottom: 6px; }
+.prize-name  { font-weight: 700; font-size: 14px; }
+.prize-val   { font-size: 12px; color: var(--muted); margin-top: 4px; }
+.tombola-badge {
+  display: inline-block;
+  background: var(--fill);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  border-radius: 999px;
+  padding: 2px 8px;
+  position: absolute;
+  top: 10px; right: 10px;
+}
+.tombola-stats {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin: 16px 0;
+}
+.tombola-stat-box {
+  flex: 1;
+  min-width: 130px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 12px;
+  text-align: center;
+}
+.tombola-stat-val { font-size: 22px; font-weight: 900; }
+.tombola-stat-lbl { font-size: 11px; color: var(--muted); margin-top: 4px; }
 </style>
 </head>
 
@@ -308,6 +350,30 @@ h3{margin-top:20px;}
   </div>
 </div>
 
+<!-- ===== TOMBOLA ===== -->
+<div class="card pad">
+  <h2 id="tombolaTitle"></h2>
+  <p class="story" id="tombolaTxt"></p>
+
+  <div class="tombola-stats">
+    <div class="tombola-stat-box">
+      <div class="tombola-stat-val" id="tombolaTicketCount">—</div>
+      <div class="tombola-stat-lbl" id="tombolaTicketLbl"></div>
+    </div>
+    <div class="tombola-stat-box">
+      <div class="tombola-stat-val" id="tombolaDrawDateVal">—</div>
+      <div class="tombola-stat-lbl" id="tombolaDrawDateLbl"></div>
+    </div>
+  </div>
+
+  <div class="section-title" id="tombolaPrizesTitle"></div>
+  <div class="prize-grid" id="tombolaPrizesList"></div>
+
+  <p class="small" style="margin-top:16px; border-top:1px solid var(--border); padding-top:10px;"
+     id="tombolaRuleTxt"></p>
+</div>
+<!-- ===== FIN TOMBOLA ===== -->
+
 <div class="card pad">
   <h2 id="storyTitle"></h2>
 
@@ -347,10 +413,9 @@ h3{margin-top:20px;}
 </div>
 
 <script>
-const DATA_URL="https://script.google.com/macros/s/AKfycbyx9hFIluBr_UTahmez68hl3PG-dcRByqaKyCB6xU-Y15EEVXONuPGXt_84MP3U6Ohd/exec";
+const DATA_URL="https://script.google.com/macros/s/AKfycbwuSdWOnz1IyRut9IEGWFmEiFaErw6dmv6iz8U8BJkdXiAooT7-EPZ24-28LrKPTVwi_w/exec";
 const TOKEN="4444";
 
-// Stockage global des données pour la mise à jour dynamique
 let cachedData = null;
 
 const LANGS={
@@ -362,7 +427,7 @@ fr:{
  remaining:"Reste à atteindre",
  iban:"Virement bancaire (copier IBAN)",
  ibanMsg: "Communication (obligatoire) :",
- nameInstruction: "+ précisez votre nom si vous souhaitez apparaître dans le classement.",
+ nameInstruction: "+ précisez votre nom pour la tombola et le classement des dons.",
  thanks: "🙏 Merci pour votre soutien !",
  reached:"🎉 Objectif atteint !",
  day:"jour",
@@ -371,28 +436,42 @@ fr:{
  rewards:"Barèmes & Cadeaux",
  share: "Partager",
  rewardsList: [
-    {val: "5€", txt: "1 Ticket tombola"},
-    {val: "10€", txt: "2 Tickets tombola + remerciements sur grand écran et carnet"},
-    {val: "20€", txt: "5 Tickets tombola + stickers T4 + contreparties précédentes"},
-    {val: "30€", txt: "8 Tickets tombola + porte clefs T4 + contreparties précédentes"},
-    {val: "50€", txt: "15 Tickets tombola + affiche A3 grande pyramide + contreparties précdentes"},
+    {val: "5€",   txt: "1 Ticket tombola"},
+    {val: "10€",  txt: "2 Tickets tombola + remerciements sur grand écran et carnet"},
+    {val: "20€",  txt: "5 Tickets tombola + stickers T4 + contreparties précédentes"},
+    {val: "30€",  txt: "8 Tickets tombola + porte-clés T4 + contreparties précédentes"},
+    {val: "50€",  txt: "15 Tickets tombola + affiche A3 grande pyramide + contreparties précédentes"},
     {val: "100€", txt: "25 Tickets tombola + place VIP + contreparties précédentes"}
  ],
  topDonors:"Top 5 Donateurs",
+ tombola: {
+  title: "🎟️ Tombola",
+  txt: "En soutenant le Show Vélo, vous participez automatiquement à notre tombola ! Plus votre don est généreux, plus vous recevez de tickets et plus vos chances de gagner sont élevées.",
+  ticketLbl: "Tickets distribués",
+  drawDateLbl: "Date du tirage",
+  prizesTitle: "Lots à gagner",
+  rule: "⚠️ Un seul lot par gagnant. Le tirage au sort aura lieu à l'issue du spectacle. Les gagnants seront contactés par email.",
+  prizes: [
+    { rank: "🥇", name: "1er prix",          val: "Lot surprise", badge: "1×" },
+    { rank: "🥈", name: "2ème prix",          val: "Lot surprise", badge: "1×" },
+    { rank: "🥉", name: "3ème prix",          val: "Lot surprise", badge: "1×" },
+    { rank: "🎁", name: "4ème – 10ème prix",  val: "Lot surprise", badge: "7×" }
+  ]
+ },
  story:{
   title:"Le projet",
   presentationTitle : "Présentation du projet",
-  presentation: `Nous faisons appel à votre générosité afin de soutenir la réalisation du Show-Vélo, un spectacle d’acrobaties à vélo préparé tout au long de l’année par près de cinquante scouts âgés de 12 à 18 ans. Ce spectacle rassemble synchronisation, technique et créativité.`,
+  presentation: `Nous faisons appel à votre générosité afin de soutenir la réalisation du Show-Vélo, un spectacle d'acrobaties à vélo préparé tout au long de l'année par près de cinquante scouts âgés de 12 à 18 ans. Ce spectacle rassemble synchronisation, technique et créativité.`,
   historyTitle: "Histoire du show-vélo",
   history: `Véritable moment phare de la vie de la Troupe, le Show-Vélo est un événement unique mêlant agilité, force et créativité. Face à un public de plus de 3 000 spectateurs, à la lueur des flambeaux, les scouts maîtrisent leur vélo pour réaliser des figures toujours plus impressionnantes.`,
-  figuresTitle:"Exercices d’ensemble",
-  figures:`Le spectacle se compose de deux grands types de performances. Les exercices d’ensemble reposent sur une synchronisation parfaite : alignement millimétré, timing rigoureux et concentration absolue permettent aux scouts de former des figures spectaculaires. Les acrobaties mettent l’accent sur le risque et la difficulté technique.`,
+  figuresTitle:"Exercices d'ensemble",
+  figures:`Le spectacle se compose de deux grands types de performances. Les exercices d'ensemble reposent sur une synchronisation parfaite : alignement millimétré, timing rigoureux et concentration absolue permettent aux scouts de former des figures spectaculaires. Les acrobaties mettent l'accent sur le risque et la difficulté technique.`,
   orgaTitle:"Organisation technique",
   orga:`Le Show-Vélo ne pourrait exister sans une organisation technique pointilleuse. Accompagnement musical, effets pyrotechniques, et 25 000 watts de jeux de lumière contribuent à faire de cet événement un spectacle hors du commun. Cette année, nous souhaitons aller plus loin en faisant appel à une équipe professionnelle pour assurer le tournage et la retransmission du spectacle en direct.`,
   fundingTitle:"Financement",
-  funding:`Le poste de dépense principal concerne la sonorisation et les jeux de lumière. Un événement de cette ampleur nécessite un important apport logistique et technique. À cela s’ajoutent d’autres frais indispensables tels que l’impression des affiches, l’entretien et la réparation des vélos.`,
+  funding:`Le poste de dépense principal concerne la sonorisation et les jeux de lumière. Un événement de cette ampleur nécessite un important apport logistique et technique. À cela s'ajoutent d'autres frais indispensables tels que l'impression des affiches, l'entretien et la réparation des vélos.`,
   sponsorTitle:"Sponsoring",
-  sponsor:`Pour les entreprises souhaitant soutenir le projet tout en gagnant en visibilité, un système de sponsoring a été mis en place. En contribuant, votre entreprise pourra afficher son logo sur des affiches et l’insérer dans les carnets distribués lors du spectacle.`
+  sponsor:`Pour les entreprises souhaitant soutenir le projet tout en gagnant en visibilité, un système de sponsoring a été mis en place. En contribuant, votre entreprise pourra afficher son logo sur des affiches et l'insérer dans les carnets distribués lors du spectacle.`
  }
 },
 en:{
@@ -403,7 +482,7 @@ en:{
   remaining:"Remaining to goal",
   iban:"Bank transfer (copy IBAN)",
   ibanMsg: "Message (mandatory):",
-  nameInstruction: "+ specify your name if you wish to appear in the ranking.",
+  nameInstruction: "+ specify your name for the tombola and to appear in the ranking.",
   thanks: "🙏 Thanks for your support!",
   reached:"🎉 Goal reached!",
   day:"day",
@@ -412,20 +491,34 @@ en:{
   rewards:"Rewards & Gifts",
   share: "Share",
   rewardsList: [
-    {val: "5€", txt: "1 Tombola ticket"},
-    {val: "10€", txt: "2 Tombola tickets + acknowledgments on the big screen"},
-    {val: "20€", txt: "5 Tombola tickets + T4 stickers + previous benefits"},
-    {val: "30€", txt: "8 Tombola tickets + T4 keychain + previous benefits"},
-    {val: "50€", txt: "15 Tombola tickets + A3 poster of the great pyramid + previous benefits"},
+    {val: "5€",   txt: "1 Tombola ticket"},
+    {val: "10€",  txt: "2 Tombola tickets + acknowledgments on the big screen"},
+    {val: "20€",  txt: "5 Tombola tickets + T4 stickers + previous benefits"},
+    {val: "30€",  txt: "8 Tombola tickets + T4 keychain + previous benefits"},
+    {val: "50€",  txt: "15 Tombola tickets + A3 poster of the great pyramid + previous benefits"},
     {val: "100€", txt: "25 Tombola tickets + VIP seat + previous benefits"}
   ],
   topDonors:"Top 5 Donors",
+  tombola: {
+    title: "🎟️ Raffle",
+    txt: "By supporting Show Vélo, you automatically enter our raffle! The more generous your donation, the more tickets you receive and the higher your chances of winning.",
+    ticketLbl: "Tickets issued",
+    drawDateLbl: "Draw date",
+    prizesTitle: "Prizes",
+    rule: "⚠️ One prize per winner. The draw will take place at the end of the show. Winners will be contacted by email.",
+    prizes: [
+      { rank: "🥇", name: "1st prize",        val: "Surprise gift", badge: "1×" },
+      { rank: "🥈", name: "2nd prize",        val: "Surprise gift", badge: "1×" },
+      { rank: "🥉", name: "3rd prize",        val: "Surprise gift", badge: "1×" },
+      { rank: "🎁", name: "4th – 10th prize", val: "Surprise gift", badge: "7×" }
+    ]
+  },
   story:{
     title:"The project",
     presentationTitle : "Project presentation",
     presentation: `We are calling on your generosity to support the realization of the Show-Vélo, a bicycle acrobatics show prepared throughout the year by nearly fifty scouts aged 12 to 18. This show combines synchronization, technique and creativity.`,
     historyTitle: "History of the Show-Vélo",
-    history: `Every three years, and since 1942, on the occasion of the Saint-Michel College celebration, the Fourth Ardents Troop of Saint-Michel transforms the school courtyard into a true performance space. A true highlight of the Troop’s life, the Show-Vélo combines agility, strength and creativity.`,
+    history: `Every three years, and since 1942, on the occasion of the Saint-Michel College celebration, the Fourth Ardents Troop of Saint-Michel transforms the school courtyard into a true performance space. A true highlight of the Troop's life, the Show-Vélo combines agility, strength and creativity.`,
     figuresTitle:"Group exercises and acrobatics",
     figures:`The show consists of two main types of performances. Group exercises rely on perfect synchronization: millimeter-precise alignment, rigorous timing and absolute concentration allow the scouts to form spectacular geometric figures. Acrobatics emphasize risk and technical difficulty.`,
     orgaTitle:"An impressive technical organization",
@@ -434,8 +527,8 @@ en:{
     funding:`The main expense concerns sound systems and lighting. An event of this scale requires significant logistical and material resources. Other essential costs include printing posters and booklets, maintenance and repair of bicycles.`,
     sponsorTitle:"Sponsorship for companies",
     sponsor:`For companies wishing to support the project while gaining visibility, a sponsorship system has been put in place. By contributing, your company can display its logo on posters and include an ad in the event booklets.`
-    }
   }
+}
 };
 
 let lang=localStorage.lang||"fr";
@@ -461,11 +554,8 @@ function applyLang(){
  set("topDonorsTitle", L.topDonors);
  set("shareLbl", L.share);
  
- // Mise à jour du message de remerciement / succès
  if(cachedData){
     set("statusTxt", cachedData.current >= cachedData.goal ? L.reached : L.thanks);
-    
-    // Mise à jour du compte à rebours jours
     if (cachedData.endDate) {
       const days = Math.max(0, Math.ceil((new Date(cachedData.endDate) - Date.now()) / 86400000));
       const daysEl = document.getElementById("daysLeft");
@@ -481,6 +571,23 @@ function applyLang(){
  const rList = document.getElementById("rewardsList");
  rList.innerHTML = L.rewardsList.map(r => `
     <div class="reward-row"><span class="reward-val">${r.val}</span> <span>${r.txt}</span></div>
+ `).join('');
+
+ // Tombola
+ const T = L.tombola;
+ set("tombolaTitle",       T.title);
+ set("tombolaTxt",         T.txt);
+ set("tombolaTicketLbl",   T.ticketLbl);
+ set("tombolaDrawDateLbl", T.drawDateLbl);
+ set("tombolaPrizesTitle", T.prizesTitle);
+ set("tombolaRuleTxt",     T.rule);
+ document.getElementById("tombolaPrizesList").innerHTML = T.prizes.map(p => `
+   <div class="prize-card">
+     <span class="tombola-badge">${p.badge}</span>
+     <div class="prize-rank">${p.rank}</div>
+     <div class="prize-name">${p.name}</div>
+     <div class="prize-val">${p.val}</div>
+   </div>
  `).join('');
  
  const S=L.story;
@@ -519,7 +626,7 @@ async function loadData(){
   try{
     const r = await fetch(`${DATA_URL}?token=${TOKEN}`);
     const d = await r.json();
-    cachedData = d; // On stocke pour le switch de langue
+    cachedData = d;
 
     const pct = Math.min(100, Math.round(d.current / d.goal * 100));
     document.getElementById("fill").style.width = pct + "%";
@@ -572,6 +679,10 @@ async function loadData(){
         document.getElementById("ytWrap").style.display = "block";
       }
     }
+
+    // Tombola — données dynamiques depuis le Google Sheet
+    set("tombolaTicketCount", d.tombolaTickets ?? "—");
+    set("tombolaDrawDateVal", d.tombolaDrawDate || "—");
 
     const btn = document.getElementById("btnIban");
     btn.onclick = async () => {
