@@ -152,8 +152,14 @@ h3{margin-top:20px;}
   font-weight: 700;
   color: var(--fill);
   white-space: nowrap;
-  min-width: 40px;
+  width: 45px;      /* largeur fixe */
+  flex-shrink: 0;   /* ne rétrécit jamais */
 }
+
+.reward-txt {
+  flex: 1;              /* prend tout l'espace restant */
+  text-align: right;    /* colle le texte à droite */
+}  
 
 .top-list { list-style: none; padding: 0; margin: 0; }
 .top-item {
@@ -591,8 +597,11 @@ function applyLang(){
  
  const rList = document.getElementById("rewardsList");
  rList.innerHTML = L.rewardsList.map(r => `
-    <div class="reward-row"><span class="reward-val">${r.val}</span> <span>${r.txt}</span></div>
- `).join('');
+   <div class="reward-row">
+     <span class="reward-val">${r.val}</span>
+     <span class="reward-txt">${r.txt}</span>
+   </div>
+`).join('');
 
  // Tombola
  const T = L.tombola;
