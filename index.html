@@ -450,9 +450,9 @@ fr:{
   ticketLbl: "Tickets distribués",
   drawDateLbl: "Date du tirage",
   prizesTitle: "Lots à gagner",
-  rule: "⚠️ Un seul lot par gagnant. Le tirage au sort aura lieu lieu le jour du spectacle. Les gagnants seront contactés par email.",
+  rule: "⚠️ Un seul lot par gagnant. Le tirage au sort aura lieu  la veille du jour du spectacle à midi. Les gagnants seront contactés par email un peu plus tard et annoncés au show.",
   prizes: [
-    { rank: "🥇", name: "1er prix",          val: "Lot surprise", badge: "1×" },
+    { rank: "🥇", name: "1er prix",          val: "Accessoires de vélo (valeur 500€)", badge: "1×" },
     { rank: "🥈", name: "2ème prix",          val: "Lot surprise", badge: "1×" },
     { rank: "🥉", name: "3ème prix",          val: "Lot surprise", badge: "1×" },
     { rank: "🎁", name: "4ème – 10ème prix",  val: "Lot surprise", badge: "7×" }
@@ -505,9 +505,9 @@ en:{
     ticketLbl: "Tickets issued",
     drawDateLbl: "Draw date",
     prizesTitle: "Prizes",
-    rule: "⚠️ One prize per winner. The draw will take place on the day of the show. Winners will be contacted by email.",
+    rule: "⚠️ One prize per winner. The draw will take place the day before the show, at noon. Winners will be contacted by email a little later and announced at the show.",
     prizes: [
-      { rank: "🥇", name: "1st prize",        val: "Surprise gift", badge: "1×" },
+      { rank: "🥇", name: "1st prize",        val: "Bicycle accessories (500€ value)", badge: "1×" },
       { rank: "🥈", name: "2nd prize",        val: "Surprise gift", badge: "1×" },
       { rank: "🥉", name: "3rd prize",        val: "Surprise gift", badge: "1×" },
       { rank: "🎁", name: "4th – 10th prize", val: "Surprise gift", badge: "7×" }
@@ -537,6 +537,20 @@ document.documentElement.dataset.theme=theme;
 
 const set=(id,v)=>document.getElementById(id).textContent=v;
 const fmt=n=>new Intl.NumberFormat("fr-BE",{style:"currency",currency:"EUR",maximumFractionDigits:0}).format(n);
+
+function formatDateFR(dateStr){
+  if (!dateStr) return "—";
+
+  const d = new Date(dateStr);
+
+  if (isNaN(d)) return dateStr;
+
+  const day = String(d.getDate()).padStart(2,"0");
+  const month = String(d.getMonth()+1).padStart(2,"0");
+  const year = d.getFullYear();
+
+  return `${day}/${month}/${year}`;
+}  
 
 function applyLang(){
  const L=LANGS[lang];
@@ -634,8 +648,8 @@ async function loadData(){
     set("goalTxt", fmt(d.goal));
     set("minTxt", fmt(d.minimum));
     set("remainingTxt", fmt(Math.max(0, d.goal - d.current)));
-    set("endTxt", d.endDate);
-    set("updatedTxt", d.updated);
+    set("endTxt", formatDateFR(d.endDate));
+    set("updatedTxt", formatDateFR(d.updated));
     set("minStatus", d.current >= d.minimum ? "✅ Atteint" : fmt(d.minimum - d.current));
 
     if (d.endDate) {
@@ -682,7 +696,7 @@ async function loadData(){
 
     // Tombola — données dynamiques depuis le Google Sheet
     set("tombolaTicketCount", d.tombolaTickets ?? "—");
-    set("tombolaDrawDateVal", d.tombolaDrawDate || "—");
+    set("tombolaDrawDateVal", formatDateFR(d.tombolaDrawDate));
 
     const btn = document.getElementById("btnIban");
     btn.onclick = async () => {
