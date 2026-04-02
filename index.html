@@ -565,19 +565,36 @@ const fmt=n=>new Intl.NumberFormat("fr-BE",{style:"currency",currency:"EUR",maxi
 function formatDateFR(dateStr){
   if (!dateStr) return "—";
 
-  // Cas ISO (YYYY-MM-DD)
-  if (dateStr.includes("-")) {
-    const [year, month, day] = dateStr.split("-");
-    return `${day}/${month}/${year}`;
-  }
+  try {
+    // Si c'est une date ISO complète (avec T...)
+    if (dateStr.includes("T")) {
+      const date = new Date(dateStr);
 
-  // Cas FR (DD/MM/YYYY)
-  if (dateStr.includes("/")) {
-    const [day, month, year] = dateStr.split("/");
-    return `${day.padStart(2,"0")}/${month.padStart(2,"0")}/${year}`;
-  }
+      return date.toLocaleDateString("fr-BE", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric"
+      });
+    }
 
-  return dateStr;
+    // Cas ISO simple YYYY-MM-DD
+    if (dateStr.includes("-")) {
+      const [year, month, day] = dateStr.split("-");
+      return `${day}/${month}/${year}`;
+    }
+
+    // Cas déjà en format FR
+    if (dateStr.includes("/")) {
+      const [day, month, year] = dateStr.split("/");
+      return `${day.padStart(2,"0")}/${month.padStart(2,"0")}/${year}`;
+    }
+
+    return dateStr;
+
+  } catch (e) {
+    console.warn("Erreur format date :", dateStr);
+    return dateStr;
+  }
 }
 
 function applyLang(){
