@@ -152,13 +152,13 @@ h3{margin-top:20px;}
   font-weight: 700;
   color: var(--fill);
   white-space: nowrap;
-  width: 45px;      /* largeur fixe */
-  flex-shrink: 0;   /* ne rétrécit jamais */
+  width: 45px;
+  flex-shrink: 0;
 }
 
 .reward-txt {
-  flex: 1;              /* prend tout l'espace restant */
-  text-align: right;    /* colle le texte à droite */
+  flex: 1;
+  text-align: right;
 }  
 
 .top-list { list-style: none; padding: 0; margin: 0; }
@@ -280,6 +280,13 @@ h3{margin-top:20px;}
 }
 .tombola-stat-val { font-size: 22px; font-weight: 900; }
 .tombola-stat-lbl { font-size: 11px; color: var(--muted); margin-top: 4px; }
+.prize-more {
+  margin-top: 12px;
+  font-size: 13px;
+  color: var(--muted);
+  font-style: italic;
+  text-align: center;
+}
 </style>
 </head>
 
@@ -334,6 +341,13 @@ h3{margin-top:20px;}
 
     <button class="btn primary" id="btnIban"></button>
 
+    <!-- Communication IBAN — juste après le bouton, avant les barèmes -->
+    <div class="small" style="margin-top:12px; padding:10px 12px; border:1px solid var(--border); border-radius:12px; background:var(--soft);">
+      <strong id="ibanMsgLbl"></strong>
+      <strong><code>Show Vélo 2026</code></strong>
+      <span id="nameInstructionLbl" style="font-style:italic; margin-left:5px;"></span>
+    </div>
+
     <div class="donation-grid">
       <div class="qr-col" id="qrWrap" style="display:none;">
         <div class="section-title">Scan & Pay</div>
@@ -352,11 +366,6 @@ h3{margin-top:20px;}
           <li class="small">Chargement...</li>
         </ul>
       </div>
-    </div>
-
-    <div class="small" style="margin-top:15px; border-top: 1px solid var(--border); padding-top:10px;">
-      <strong id="ibanMsgLbl"></strong><br> 
-      <code>Show Vélo 2026</code> <span id="nameInstructionLbl" style="font-style: italic; margin-left: 5px;"></span>
     </div>
 
     <div class="small" id="statusTxt"></div>
@@ -381,6 +390,7 @@ h3{margin-top:20px;}
 
   <div class="section-title" id="tombolaPrizesTitle"></div>
   <div class="prize-grid" id="tombolaPrizesList"></div>
+  <p class="prize-more" id="tombolaMorePrizes"></p>
 
   <p class="small" style="margin-top:16px; border-top:1px solid var(--border); padding-top:10px;"
      id="tombolaRuleTxt"></p>
@@ -463,12 +473,12 @@ fr:{
   ticketLbl: "Tickets distribués",
   drawDateLbl: "Date du tirage",
   prizesTitle: "Lots à gagner",
+  morePrizes: "🎁 Et bien d'autres lots surprise à découvrir !",
   rule: "⚠️ Un seul lot par gagnant. Le tirage au sort aura lieu la veille du spectacle à midi. Les gagnants seront contactés par email un peu plus tard et annoncés au show.",
   prizes: [
-    { rank: "🥇", name: "1er prix",          val: "Accessoires de vélo (valeur 250€)", badge: "1×" },
-    { rank: "🥈", name: "2ème prix",          val: "Accessoires de vélo (valeur 150€)", badge: "1×" },
-    { rank: "🥉", name: "3ème prix",          val: "Accessoires de vélo (valeur 100€)", badge: "1×" },
-    { rank: "🎁", name: "4ème – 10ème prix",  val: "Goodies", badge: "7×" }
+    { rank: "🥇", name: "1er prix",  val: "Lot d'une valeur de 300€", badge: "1×" },
+    { rank: "🥈", name: "2ème prix", val: "Lot d'une valeur de 200€", badge: "1×" },
+    { rank: "🥉", name: "3ème prix", val: "Lot d'une valeur de 100€", badge: "1×" }
   ]
  },
  story:{
@@ -518,12 +528,12 @@ en:{
     ticketLbl: "Tickets issued",
     drawDateLbl: "Draw date",
     prizesTitle: "Prizes",
+    morePrizes: "🎁 And many more surprise prizes to be revealed!",
     rule: "⚠️ One prize per winner. The draw will take place the day before the show, at noon. Winners will be contacted by email a little later and announced at the show.",
     prizes: [
-      { rank: "🥇", name: "1st prize",        val: "Bicycle accessories (250€ value)", badge: "1×" },
-      { rank: "🥈", name: "2nd prize",        val: "Bicycle accessories (150€ value)", badge: "1×" },
-      { rank: "🥉", name: "3rd prize",        val: "Bicycle accessories (100€ value)", badge: "1×" },
-      { rank: "🎁", name: "4th – 10th prize", val: "Goodies", badge: "7×" }
+      { rank: "🥇", name: "1st prize", val: "Prize worth €300", badge: "1×" },
+      { rank: "🥈", name: "2nd prize", val: "Prize worth €200", badge: "1×" },
+      { rank: "🥉", name: "3rd prize", val: "Prize worth €100", badge: "1×" }
     ]
   },
   story:{
@@ -553,15 +563,11 @@ const fmt=n=>new Intl.NumberFormat("fr-BE",{style:"currency",currency:"EUR",maxi
 
 function formatDateFR(dateStr){
   if (!dateStr) return "—";
-
   const d = new Date(dateStr);
-
   if (isNaN(d)) return dateStr;
-
   const day = String(d.getDate()).padStart(2,"0");
   const month = String(d.getMonth()+1).padStart(2,"0");
   const year = d.getFullYear();
-
   return `${day}/${month}/${year}`;
 }  
 
@@ -610,6 +616,7 @@ function applyLang(){
  set("tombolaTicketLbl",   T.ticketLbl);
  set("tombolaDrawDateLbl", T.drawDateLbl);
  set("tombolaPrizesTitle", T.prizesTitle);
+ set("tombolaMorePrizes",  T.morePrizes);
  set("tombolaRuleTxt",     T.rule);
  document.getElementById("tombolaPrizesList").innerHTML = T.prizes.map(p => `
    <div class="prize-card">
