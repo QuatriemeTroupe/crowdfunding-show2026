@@ -74,6 +74,9 @@ h3{margin-top:20px;}
 .row{display:flex;justify-content:space-between;margin-top:10px;font-size:12px;color:var(--muted);}
 .pill{border:1px solid var(--border);padding:3px 9px;border-radius:999px;}
 
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px;}
+.box{border:1px solid var(--border);border-radius:14px;padding:12px;}
+
 .btn{
   padding:10px 12px;
   border-radius:12px;
@@ -111,46 +114,6 @@ h3{margin-top:20px;}
   background-position: center 1px;
   background-size: cover;
   background-color: #333;
-}
-
-/* COMMUNICATION IBAN */
-.iban-notice {
-  margin-top: 12px;
-  padding: 14px 16px;
-  border: 2px solid #f59e0b;
-  border-radius: 14px;
-  background: #fffbeb;
-  font-size: 14px;
-  line-height: 1.6;
-}
-[data-theme="dark"] .iban-notice {
-  background: #1c1100;
-  border-color: #b45309;
-}
-.iban-notice .iban-label {
-  display: block;
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  color: #92400e;
-  font-weight: 700;
-  margin-bottom: 6px;
-}
-[data-theme="dark"] .iban-notice .iban-label {
-  color: #fbbf24;
-}
-.iban-notice .iban-value {
-  font-size: 18px;
-  font-weight: 900;
-  color: var(--text);
-  letter-spacing: 0.5px;
-}
-.iban-notice .iban-sub {
-  display: block;
-  margin-top: 4px;
-  font-size: 12px;
-  color: var(--muted);
-  font-style: italic;
 }
 
 /* ZONE DONATION & TOP 5 */
@@ -202,16 +165,11 @@ h3{margin-top:20px;}
 .top-item {
   display: flex;
   justify-content: space-between;
-  align-items: baseline;
   font-size: 13px;
   padding: 4px 0;
-  gap: 8px;
 }
-.top-name {
-  flex: 1;
-  word-break: break-word;
-}
-.top-amt { font-weight: bold; white-space: nowrap; }
+.top-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.top-amt { font-weight: bold; }
 
 /* CAROUSEL */
 .carousel {
@@ -281,7 +239,7 @@ h3{margin-top:20px;}
 .prize-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 180px));
-  justify-content: center;
+  justify-content: center; /* centre les cartes */
   gap: 12px;
   margin-top: 14px;
 }
@@ -357,6 +315,7 @@ h3{margin-top:20px;}
         <h1 id="title"></h1>
         <div class="sub">
           <span id="goalLbl"></span> : <span id="goalTxt"></span> •
+          <span id="minLbl"></span> : <span id="minTxt"></span> •
           <span id="endLbl"></span> : <span id="endTxt"></span>
         </div>
       </div>
@@ -370,13 +329,24 @@ h3{margin-top:20px;}
       <div class="pill" id="daysLeft"></div>
     </div>
 
+    <div class="grid">
+      <div class="box">
+        <div class="small" id="minMilestoneLbl"></div>
+        <div id="minStatus"></div>
+      </div>
+      <div class="box">
+        <div class="small" id="remainingLbl"></div>
+        <div id="remainingTxt"></div>
+      </div>
+    </div>
+
     <button class="btn primary" id="btnIban"></button>
 
-    <!-- Communication IBAN — encadré bien visible -->
-    <div class="iban-notice">
-      <span class="iban-label" id="ibanMsgLbl"></span>
-      <span class="iban-value">Show Vélo 2026</span>
-      <span class="iban-sub" id="nameInstructionLbl"></span>
+    <!-- Communication IBAN — juste après le bouton, avant les barèmes -->
+    <div class="small" style="margin-top:12px; padding:10px 12px; border:1px solid var(--border); border-radius:12px; background:var(--soft);">
+      <strong id="ibanMsgLbl"></strong>
+      <strong><code>Show Vélo 2026</code></strong>
+      <span id="nameInstructionLbl" style="font-style:italic; margin-left:5px;"></span>
     </div>
 
     <div class="donation-grid">
@@ -475,11 +445,13 @@ let cachedData = null;
 const LANGS={
 fr:{
  title:'Soutenir "Show Vélo 2026"',
- goal:"Objectif",end:"Date limite",
+ goal:"Objectif",min:"Minimum",end:"Date limite",
  updated:"Mis à jour",
- iban:"Virement bancaire (cliquer pour copier IBAN)",
- ibanMsg: "Communication obligatoire :",
- nameInstruction: "+ précisez votre nom ET ADRESSE MAIL pour la tombola.",
+ minMilestone:"Seuil minimum",
+ remaining:"Reste à atteindre",
+ iban:"Virement bancaire (cliquer pou copier IBAN)",
+ ibanMsg: "Communication (obligatoire) :",
+ nameInstruction: "+ précisez votre nom ET ADRESSE MAIL pour la tombola et apparaître dans le classement des dons.",
  thanks: "🙏 Merci pour votre soutien !",
  reached:"🎉 Objectif atteint !",
  day:"jour",
@@ -528,11 +500,13 @@ fr:{
 },
 en:{
   title:'Support "Show vélo 2026"',
-  goal:"Goal", end:"Deadline",
+  goal:"Goal",min:"Minimum",end:"Deadline",
   updated:"Updated",
+  minMilestone:"Minimum milestone",
+  remaining:"Remaining to goal",
   iban:"Bank transfer (click to copy IBAN)",
-  ibanMsg: "Mandatory message:",
-  nameInstruction: "+ specify your name AND E-MAIL ADDRESS for the tombola.",
+  ibanMsg: "Message (mandatory):",
+  nameInstruction: "+ specify your name AND E-MAIL ADRESS for the tombola and to appear in the ranking of donors.",
   thanks: "🙏 Thanks for your support!",
   reached:"🎉 Goal reached!",
   day:"day",
@@ -590,20 +564,35 @@ const fmt=n=>new Intl.NumberFormat("fr-BE",{style:"currency",currency:"EUR",maxi
 
 function formatDateFR(dateStr){
   if (!dateStr) return "—";
+
   try {
+    // Si c'est une date ISO complète (avec T...)
     if (dateStr.includes("T")) {
-      return new Date(dateStr).toLocaleDateString("fr-BE", {day:"2-digit",month:"2-digit",year:"numeric"});
+      const date = new Date(dateStr);
+
+      return date.toLocaleDateString("fr-BE", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric"
+      });
     }
+
+    // Cas ISO simple YYYY-MM-DD
     if (dateStr.includes("-")) {
       const [year, month, day] = dateStr.split("-");
       return `${day}/${month}/${year}`;
     }
+
+    // Cas déjà en format FR
     if (dateStr.includes("/")) {
       const [day, month, year] = dateStr.split("/");
       return `${day.padStart(2,"0")}/${month.padStart(2,"0")}/${year}`;
     }
+
     return dateStr;
+
   } catch (e) {
+    console.warn("Erreur format date :", dateStr);
     return dateStr;
   }
 }
@@ -612,8 +601,11 @@ function applyLang(){
  const L=LANGS[lang];
  set("title",L.title);
  set("goalLbl",L.goal);
+ set("minLbl",L.min);
  set("endLbl",L.end);
  set("updatedLbl",L.updated);
+ set("minMilestoneLbl",L.minMilestone);
+ set("remainingLbl",L.remaining);
  set("btnIban",L.iban);
  set("ibanMsgLbl",L.ibanMsg);
  set("nameInstructionLbl", L.nameInstruction);
@@ -703,9 +695,11 @@ async function loadData(){
     document.getElementById("fill").style.width = pct + "%";
     set("currentTxt", `${fmt(d.current)} (${pct}%)`);
     set("goalTxt", fmt(d.goal));
+    set("minTxt", fmt(d.minimum));
     set("remainingTxt", fmt(Math.max(0, d.goal - d.current)));
     set("endTxt", formatDateFR(d.endDate));
     set("updatedTxt", formatDateFR(d.updated));
+    set("minStatus", d.current >= d.minimum ? "✅ Atteint" : fmt(d.minimum - d.current));
 
     if (d.endDate) {
       const days = Math.max(0, Math.ceil((new Date(d.endDate) - Date.now()) / 86400000));
@@ -732,9 +726,8 @@ async function loadData(){
       d.topDonors.forEach((donor, i) => {
         const li = document.createElement("li");
         li.className = "top-item";
-        const rankIcon = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉"
-          : `<small style="opacity:0.5;width:20px;display:inline-block">${i+1}.</small>`;
-        li.innerHTML = `<span class="top-name">${rankIcon} ${donor.name}</span><span class="top-amt">${fmt(donor.amount)}</span>`;
+        let rankIcon = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `<small style="opacity:0.5; width:20px; display:inline-block">${i + 1}.</small>`;
+        li.innerHTML = `<span class="top-name">${rankIcon} ${donor.name}</span> <span class="top-amt">${fmt(donor.amount)}</span>`;
         topList.appendChild(li);
       });
     } else {
@@ -743,8 +736,7 @@ async function loadData(){
 
     if (d.youtubeUrl) {
       const url = d.youtubeUrl;
-      let videoId = url.includes('v=') ? url.split('v=')[1].split('&')[0]
-        : (url.includes('youtu.be/') ? url.split('youtu.be/')[1].split('?')[0] : "");
+      let videoId = url.includes('v=') ? url.split('v=')[1].split('&')[0] : (url.includes('youtu.be/') ? url.split('youtu.be/')[1].split('?')[0] : "");
       if (videoId) {
         document.getElementById("ytPlayer").src = `https://www.youtube.com/embed/${videoId}`;
         document.getElementById("ytWrap").style.display = "block";
@@ -804,9 +796,11 @@ loadData();
 
 setInterval(() => {
   if (!document.hidden) {
+    console.log("🔄 Rafraîchissement automatique...");
     loadData();
   }
 }, 2 * 60 * 1000);
+  
 </script>
 </body>
 </html>
