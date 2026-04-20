@@ -378,6 +378,9 @@ h3{margin-top:20px;}
       <span class="iban-label" id="ibanMsgLbl"></span>
       <span class="iban-value">Show Vélo 2026</span>
       <span class="iban-sub" id="nameInstructionLbl"></span>
+      <span style="display:block; margin-top:10px; font-size:13px; color:var(--muted);">
+      Numéro de compte : <strong style="color:var(--text); letter-spacing:1px;">BE36 3631 2374 7081</strong>
+      </span>
     </div>
 
     <div class="donation-grid">
@@ -729,17 +732,39 @@ async function loadData(){
     const topList = document.getElementById("topDonorsList");
     topList.innerHTML = "";
     if (d.topDonors && d.topDonors.length > 0) {
-      d.topDonors.forEach((donor, i) => {
+    const donors = d.topDonors;
+    let rank = 1;
+    let j = 0;
+
+    while (j < donors.length) {
+      // Grouper tous les ex-æquo au même montant
+      const currentAmount = donors[j].amount;
+      const group = [];
+      while (j < donors.length && donors[j].amount === currentAmount) {
+        group.push(donors[j]);
+        j++;
+      }
+
+      // Badge de rang : même icône pour tout le groupe
+      const rankIcon = rank === 1 ? "🥇"
+        : rank === 2 ? "🥈"
+        : rank === 3 ? "🥉"
+        : `<small style="opacity:0.5;width:20px;display:inline-block">${rank}.</small>`;
+
+      group.forEach(donor => {
         const li = document.createElement("li");
         li.className = "top-item";
-        const rankIcon = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉"
-          : `<small style="opacity:0.5;width:20px;display:inline-block">${i+1}.</small>`;
-        li.innerHTML = `<span class="top-name">${rankIcon} ${donor.name}</span><span class="top-amt">${fmt(donor.amount)}</span>`;
+        li.innerHTML = `<span class="top-name">${rankIcon} ${donor.name}</span>`
+                   + `<span class="top-amt">${fmt(donor.amount)}</span>`;
         topList.appendChild(li);
       });
-    } else {
+
+      rank += group.length; // le rang suivant saute les places occupées par le groupe
+      if (topList.children.length >= 5) break; // on s'arrête après un groupe complet ≥ 5
+      }
+      } else {
       topList.innerHTML = "<li class='small' style='opacity:0.5'>En attente de donateurs...</li>";
-    }
+      }
 
     if (d.youtubeUrl) {
       const url = d.youtubeUrl;
