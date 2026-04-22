@@ -759,7 +759,7 @@ async function loadData(){
         topList.appendChild(li);
       });
 
-      rank += group.length; // le rang suivant saute les places occupées par le groupe
+      rank += 1; // le rang suivant saute les places occupées par le groupe
       if (topList.children.length >= 5) break; // on s'arrête après un groupe complet ≥ 5
       }
       } else {
